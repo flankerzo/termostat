@@ -12,16 +12,16 @@
   #define BROKER_ADDR IPAddress(192, 168, 50, 51)
 #endif
 #ifndef BROKER_USERNAME
-  #define BROKER_USERNAME "user name" // replace with your credentials
+  #define BROKER_USERNAME "mqtt user name" // replace with your credentials
 #endif
 #ifndef BROKER_PASSWORD
-  #define BROKER_PASSWORD "mqtt user"
+  #define BROKER_PASSWORD "mqtt user password"
 #endif
 #ifndef WIFI_SSID
-  #define WIFI_SSID "name of wifi"
+  #define WIFI_SSID "name of your wifi"
 #endif
 #ifndef WIFI_PASSWORD
-  #define WIFI_PASSWORD "password"
+  #define WIFI_PASSWORD "password of your wifi"
 #endif
 // Data wire is plugged into port 2 on the Arduino
 #define ONE_WIRE_BUS 25
