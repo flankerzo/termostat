@@ -9,19 +9,19 @@
 #include <secrets.h>
 
 #ifndef BROKER_ADDR
-  #define BROKER_ADDR IPAddress(192, 168, 50, 51)
+#define BROKER_ADDR IPAddress(192, 168, 50, 51)
 #endif
 #ifndef BROKER_USERNAME
-  #define BROKER_USERNAME "mqtt user name" // replace with your credentials
+#define BROKER_USERNAME "mqtt user name" // replace with your credentials
 #endif
 #ifndef BROKER_PASSWORD
-  #define BROKER_PASSWORD "mqtt user password"
+#define BROKER_PASSWORD "mqtt user password"
 #endif
 #ifndef WIFI_SSID
-  #define WIFI_SSID "name of your wifi"
+#define WIFI_SSID "name of your wifi"
 #endif
 #ifndef WIFI_PASSWORD
-  #define WIFI_PASSWORD "password of your wifi"
+#define WIFI_PASSWORD "password of your wifi"
 #endif
 // Data wire is plugged into port 2 on the Arduino
 #define ONE_WIRE_BUS 25
@@ -32,27 +32,26 @@ DallasTemperature sensors(&oneWire);
 int numberOfDevices;             // Number of temperature devices found
 DeviceAddress tempDeviceAddress; // We'll use this variable to store a found device address
 
-
-
 unsigned int iWiFiConection = 0;
 float temp = 20;
 float templast = 20;
+float tempTermostat = 30; // temp when we are switching fans to higher RPM
 unsigned long lastUpdateAt = 0;
 unsigned int lastVallDuty = 0;
 byte SpeedActual = 20;
 byte lastSpeed = 20;
 // Fan control settings
 int fanPin1 = 26;     // PWM control for fan 1
-int fanPin2 = 33;     // PWM control for fan 2 THIS sdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+int fanPin2 = 33;     // PWM control for fan 2
 int fanTach1pin = 35; // Tachometer input for fan 1
 int fanTach2pin = 32; // Tachometer input for fan 2
 #define SENSOR_THRESHOLD 1000
 FanController fancontrol1(fanTach1pin, SENSOR_THRESHOLD, fanPin1);
 FanController fancontrol2(fanTach2pin, SENSOR_THRESHOLD, fanPin2);
-unsigned int rpms1=0;
-unsigned int rpms2=0;
-unsigned int lastrpms1=0;
-unsigned int lastrpms2=0;
+unsigned int rpms1 = 0;
+unsigned int rpms2 = 0;
+unsigned int lastrpms1 = 0;
+unsigned int lastrpms2 = 0;
 
 // PWM duty cycle limits
 byte fanMinDutyCycle = 20;
@@ -68,7 +67,7 @@ WiFiClient client;
 HADevice device;
 HAMqtt mqtt(client, device, 8);
 
-const char UniqueID[] = "AirEQ";
+const char UniqueID[] = "AirEQ"; // names must be uniqe if you are using more devices with same HA library
 char FanHAID[] = "ventilation";
 char Fan1HAID[] = "Fan1RPM";
 char Fan2HAID[] = "Fan2RPM";
@@ -173,7 +172,6 @@ void setup()
   {
     Serial.println("Wifi connection Failed, continuing");
   }
-  
 
   byte mac[6];
   WiFi.macAddress(mac);
@@ -184,7 +182,6 @@ void setup()
   device.setModel("model four");
   device.enableSharedAvailability();
   device.setAvailability(true);
-  
 
   FanHA.setName("AirTempEqC");
   FanHA.setSpeedRangeMin(fanMinDutyCycle);
@@ -195,12 +192,11 @@ void setup()
   FanHA.turnOn();
   FanHA.setAvailability(true);
   FanHA.isOnline();
-  
 
   Fan1RPMHA.setName("Fan1");
   Fan1RPMHA.setUnitOfMeasurement("RPM");
   Fan1RPMHA.setIcon("mdi:fan");
-  
+
   Fan2RPMHA.setName("Fan2");
   Fan2RPMHA.setUnitOfMeasurement("RPM");
   Fan2RPMHA.setIcon("mdi:fan");
@@ -260,46 +256,46 @@ void loop()
       TemperatureHA.setValue(temp);
     }
 
-    //if (checkBound(temp, lastVallDuty, 0.2))
-   // {
-      if (temp > 30)
-      {
-       // FanHA.setSpeed(FanSpeedHot);
-        SpeedActual = FanSpeedHot;
-        Serial.println(" zopnuto");
-        fancontrol1.setDutyCycle(60); // nasavim striedu pre fantcontrol
+    // if (checkBound(temp, lastVallDuty, 0.2))
+    // {
+    if (temp > tempTermostat)
+    {
+      // FanHA.setSpeed(FanSpeedHot);
+      SpeedActual = FanSpeedHot;
+      Serial.println(" zopnuto");
+      fancontrol1.setDutyCycle(60); // nasavim striedu pre fantcontrol
       fancontrol2.setDutyCycle(60); // nasavim striedu pre fantcontrol
-      
-      }
-      else
-      {
-       // FanHA.setSpeed(FanSpeedCold);
-        SpeedActual = FanSpeedCold;
-        Serial.println(" vypnuto");
-        fancontrol1.setDutyCycle(40); // nasavim striedu pre fantcontrol
+    }
+    else
+    {
+      // FanHA.setSpeed(FanSpeedCold);
+      SpeedActual = FanSpeedCold;
+      Serial.println(" vypnuto");
+      fancontrol1.setDutyCycle(40); // nasavim striedu pre fantcontrol
       fancontrol2.setDutyCycle(40); // nasavim striedu pre fantcontrol
-      
-      }
+    }
 
-      lastVallDuty = temp;
-   // }
+    lastVallDuty = temp;
+    // }
     if (checkBound(SpeedActual, lastSpeed, 1))
     {
-      //FanHA.setSpeed(SpeedActual);
+      // FanHA.setSpeed(SpeedActual);
       lastSpeed = SpeedActual;
     }
     // Calculate RPM for each fan
-     rpms1 = fancontrol1.getSpeed();
+    rpms1 = fancontrol1.getSpeed();
     rpms2 = fancontrol2.getSpeed();
-    
-    if (checkBound(rpms1,lastrpms1,100)) {
-    Fan1RPMHA.setValue(rpms1);
-    lastrpms1=rpms1;
+
+    if (checkBound(rpms1, lastrpms1, 100))
+    {
+      Fan1RPMHA.setValue(rpms1);
+      lastrpms1 = rpms1;
     }
-    
-    if (checkBound(rpms2,lastrpms2,100)) {
-    Fan2RPMHA.setValue(rpms2);
-    lastrpms2=rpms2;
+
+    if (checkBound(rpms2, lastrpms2, 100))
+    {
+      Fan2RPMHA.setValue(rpms2);
+      lastrpms2 = rpms2;
     }
     if ((rpms1 == 0) || (rpms1 > 4000))
     {
